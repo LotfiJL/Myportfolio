@@ -3,7 +3,8 @@ const nodemailer = require("nodemailer");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const cors = require("cors"); // Add this line
-
+const path = require("path");
+const fs = require("fs");
 require("dotenv").config();
 
 const app = express();
@@ -100,6 +101,31 @@ app.post(`/submit-form`, async (req, res) => {
   }
 });
 
+//--------------------------------------------------------------
+app.get("/api/download", (req, res) => {
+  const filePath = path.join(__dirname, "./cv/CV.pdf"); // Path to your PDF file
+  const fileName = "CV.pdf"; // Name of the file you want to download
+
+  // Check if the file exists
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      // File does not exist
+      return res.status(404).send("File not found");
+    }
+
+    // File exists, create a read stream to the file
+    const fileStream = fs.createReadStream(filePath);
+
+    // Set the appropriate headers for the file download
+    res.setHeader("Content-disposition", `attachment; filename=${fileName}`);
+    res.setHeader("Content-type", "application/pdf");
+
+    // Pipe the file stream to the response object
+    fileStream.pipe(res);
+  });
+});
+
+////----------------------------------------
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
